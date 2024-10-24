@@ -1,0 +1,72 @@
+-- Получаем игрока и его персонажа
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+-- Переменные для управления автофармом
+local autoFarmEnabled = false
+
+-- Функция для активации noclip
+function noclip()
+    for _, part in pairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = false
+        end
+    end
+end
+
+-- Функция для поиска конфет
+function getCandies()
+    local candies = {}
+    for _, item in pairs(workspace:GetDescendants()) do
+        if item:IsA("Part") and item.Name == "Candy" then
+            table.insert(candies, item)
+        end
+    end
+    return candies
+end
+
+-- Функция для перемещения к конфете
+function moveTo(target)
+    character.HumanoidRootPart.CFrame = target.CFrame
+end
+
+-- Создание GUI
+local screenGui = Instance.new("ScreenGui", player.PlayerGui)
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0.3, 0, 0.2, 0)
+frame.Position = UDim2.new(0.35, 0, 0.4, 0)
+frame.BackgroundColor3 = Color3.new(0, 0, 0) -- Чёрный фон
+frame.BorderSizePixel = 0
+
+local toggleButton = Instance.new("TextButton", frame)
+toggleButton.Size = UDim2.new(1, 0, 0.5, 0)
+toggleButton.Position = UDim2.new(0, 0, 0, 0)
+toggleButton.BackgroundColor3 = Color3.new(1, 0, 0) -- Красная кнопка
+toggleButton.Text = "Включить автофарм"
+toggleButton.TextColor3 = Color3.new(1, 1, 1) -- Белый текст
+
+-- Функция для автофарма
+function autoFarm()
+    while autoFarmEnabled do
+        noclip() -- Включаем noclip
+        local candies = getCandies() -- Получаем список конфет
+        for _, candy in pairs(candies) do
+            moveTo(candy) -- Двигаемся к каждой конфете
+            wait(0.1) -- Ждем немного, чтобы персонаж успел подойти
+        end
+        wait(0.5) -- Ждем перед следующим циклом
+    end
+end
+
+-- Обработчик нажатия кнопки
+toggleButton.MouseButton1Click:Connect(function()
+    autoFarmEnabled = not autoFarmEnabled
+    if autoFarmEnabled then
+        toggleButton.Text = "Выключить автофарм"
+        toggleButton.BackgroundColor3 = Color3.new(0, 1, 0) -- Зеленая кнопка
+        autoFarm() -- Запускаем автофарм
+    else
+        toggleButton.Text = "Включить автофарм"
+        toggleButton.BackgroundColor3 = Color3.new(1, 0, 0) -- Красная кнопка
+    end
+end)
